@@ -1,12 +1,4 @@
-interface AgentPermission {
-  name: string;
-  resource: string;
-}
-
-interface AccessToken {
-  name: string;
-  secret: string;
-}
+import { AccessToken, AgentPermission } from './permission';
 
 interface Author {
   name: string;
