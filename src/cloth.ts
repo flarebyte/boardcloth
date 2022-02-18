@@ -1,75 +1,35 @@
-const boardclothAccessList = ['red', 'orange', 'yellow'] as const;
-
-/**
- * Type for Access role for Boardcloth
- */
-export type BoardclothAccess = typeof boardclothAccessList[number];
-/**
- *  Guard for Access role for Boardcloth
- */
-export const isBoardclothAccess = (value: unknown): value is BoardclothAccess =>
-  boardclothAccessList.includes(value as BoardclothAccess);
-
-interface AccessStatement {
-  action: BoardclothAccess;
+interface AgentPermission {
+  name: string;
   resource: string;
 }
 
 interface AccessToken {
-  value: string;
+  name: string;
+  secret: string;
 }
 
-class BoardclothPluginMeta {
-  _name = '';
-  _description = '';
-  _version = '0.0.0';
-  _homepage = '';
-  _flags: string[] = [];
-  _access: AccessStatement[] = [];
-  _token: AccessToken = { value: ''};
+interface Author {
+  name: string;
+  url: string;
+}
 
-  get name() {
-    return this._name;
-  }
-  set name(name: string) {
-    this._name = name;
-  }
-  get description() {
-    return this._description;
-  }
-  set description(description: string) {
-    this._description = description;
-  }
-  get version() {
-    return this._version;
-  }
-  set version(version: string) {
-    this._version = version;
-  }
-  get homepage() {
-    return this._homepage;
-  }
-  set homepage(homepage: string) {
-    this._homepage = homepage;
-  }
-  get flags() {
-    return this._flags;
-  }
-  set flags(flags: string[]) {
-    this._flags = flags;
-  }
-  get access() {
-    return this._access;
-  }
-  set access(access: AccessStatement[]) {
-    this._access = access;
-  }
-  get token() {
-    return this._token;
-  }
-  set token(token: AccessToken) {
-    this._token = token;
-  }
+/**
+ * Configuration for an Agent
+ */
+interface Agent {
+  name: string;
+  title: string;
+  description: string;
+  author: Author;
+  homepage: string;
+  version: string;
+  flags: string[];
+  permissions: AgentPermission[];
+}
+
+interface AgentHandle {
+  name: string;
+  token: AccessToken;
 }
 
 class Boardcloth {
