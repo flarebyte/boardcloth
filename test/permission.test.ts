@@ -5,29 +5,31 @@ import {
   AgentPermission,
 } from '../src/permission';
 
+const actionName = 'core:read.log';
+
 const examples: [BoardclothParams, AgentPermission[], boolean][] = [
   [
     new MessageCreator()
-      .addHeaderSingle('action', 'core:read.log')
+      .addHeaderSingle('action', actionName)
       .addHeaderSingle('resource', 'history/recent')
       .addHeaderSingle('year', '2022').message.headers,
-    [createAgentPermission('read.log', '*')],
+    [createAgentPermission(actionName, '*')],
     true,
   ],
   [
     new MessageCreator()
-      .addHeaderSingle('action', 'core:read.log')
+      .addHeaderSingle('action', actionName)
       .addHeaderSingle('resource', 'history/recent')
       .addHeaderSingle('year', '2022').message.headers,
-    [createAgentPermission('read.log', 'history/')],
+    [createAgentPermission(actionName, 'history/')],
     true,
   ],
   [
     new MessageCreator()
-      .addHeaderSingle('action', 'core:read.log')
+      .addHeaderSingle('action', actionName)
       .addHeaderSingle('resource', 'history/ancient')
       .addHeaderSingle('year', '1900').message.headers,
-    [createAgentPermission('read.log', 'history/recent')],
+    [createAgentPermission(actionName, 'history/recent')],
     false,
   ],
 ];
