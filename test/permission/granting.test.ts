@@ -1,9 +1,9 @@
-import { BoardclothParams, MessageCreator } from '../src/messaging';
+import { BoardclothParams, MessageCreator } from '../../src/message/messaging';
 import {
   isGranted,
   createAgentPermission,
   AgentPermission,
-} from '../src/permission';
+} from '../../src/permission/granting';
 
 const actionName = 'core:read.log';
 

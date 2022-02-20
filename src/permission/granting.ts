@@ -1,4 +1,4 @@
-import { BoardclothParams } from './messaging';
+import { BoardclothParams } from '../message/messaging';
 
 export interface SupportedAction {
   name: string;
