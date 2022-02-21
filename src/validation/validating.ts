@@ -231,6 +231,77 @@ const validateStringList = (
   }
   return [];
 };
+
+const validateUniqueStringList = (
+  schema: Pick<
+    FullValueSchema,
+    'key' | 'minimum' | 'maximum' | 'minItems' | 'maxItems'
+  >,
+  value: KeyMultipleValues
+): string[] => {
+  const listInRange = lengthInRange(
+    value.v.length,
+    schema.minItems,
+    schema.maxItems
+  );
+  if (!listInRange) {
+    return [
+      `The length of the list for the key ${schema.key}
+      is out of range [${schema.minItems}, ${schema.maxItems}]
+      : ${value.v.length}`,
+    ];
+  }
+  const isUnique = value.v.length === new Set(value.v).size;
+  if (!isUnique) {
+    return [`The elements in list for the key ${schema.key} should be unique`];
+  }
+
+  const isStringInRange = (text: string) =>
+    lengthInRange(text.length, schema.minimum, schema.maximum);
+
+  const allStringInRange = value.v.every(isStringInRange);
+
+  if (!allStringInRange) {
+    return [
+      `All the strings for the key ${schema.key}
+      should be in the range [${schema.minimum}, ${schema.maximum}]`,
+    ];
+  }
+  return [];
+};
+
+const validateStringEnumList = (
+  schema: Pick<FullValueSchema, 'key' | 'choices' | 'minItems' | 'maxItems'>,
+  value: KeyMultipleValues
+): string[] => {
+  const listInRange = lengthInRange(
+    value.v.length,
+    schema.minItems,
+    schema.maxItems
+  );
+  if (!listInRange) {
+    return [
+      `The length of the list for the key ${schema.key}
+      is out of range [${schema.minItems}, ${schema.maxItems}]
+      : ${value.v.length}`,
+    ];
+  }
+
+  const isUnique = value.v.length === new Set(value.v).size;
+  if (!isUnique) {
+    return [`The elements in list for the key ${schema.key} should be unique`];
+  }
+  const isStringIncluded = (text: string) => schema.choices.includes(text);
+  const allStringIncluded = value.v.every(isStringIncluded);
+
+  if (!allStringIncluded) {
+    return [
+      `All the strings for the key ${schema.key}
+      should be part of a known enumeration`,
+    ];
+  }
+  return [];
+};
 const validateKeyMultipleValues = (
   valueSchema: ValueSchema,
   value: KeyMultipleValues
@@ -238,6 +309,10 @@ const validateKeyMultipleValues = (
   switch (valueSchema.kind) {
     case 'string-list':
       return validateStringList(valueSchema.schema, value);
+    case 'unique-string-list':
+      return validateUniqueStringList(valueSchema.schema, value);
+    case 'string-enum-list':
+      return validateStringEnumList(valueSchema.schema, value);
     default:
       return [`Kind ${valueSchema.kind} is not supported for multiple values`];
   }
