@@ -81,6 +81,12 @@ const lengthInRange = (
   maximum: number
 ): boolean => length >= minimum && length <= maximum;
 
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
+
+const isSafeInteger = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isSafeInteger(value);
+
 const validateString = (
   schema: Pick<FullValueSchema, 'key' | 'minimum' | 'maximum' | 'searchable'>,
   value: KeyValue
@@ -114,6 +120,54 @@ const validateStringEnum = (
   return [];
 };
 
+const validateNumber = (
+  schema: Pick<FullValueSchema, 'key' | 'minimum' | 'maximum'>,
+  value: KeyValue
+): string[] => {
+  const numberValue = parseFloat(value.v);
+  if (!isFiniteNumber(numberValue)) {
+    return [`The key ${schema.key} should be a finite number`];
+  }
+
+  const valueInRange = lengthInRange(
+    numberValue,
+    schema.minimum,
+    schema.maximum
+  );
+  if (!valueInRange) {
+    return [
+      `The  number value for the key ${schema.key}
+      is out of range [${schema.minimum}, ${schema.maximum}]
+      : ${numberValue}`,
+    ];
+  }
+  return [];
+};
+
+const validateInteger = (
+  schema: Pick<FullValueSchema, 'key' | 'minimum' | 'maximum'>,
+  value: KeyValue
+): string[] => {
+  const numberValue = parseFloat(value.v);
+  if (!isSafeInteger(numberValue)) {
+    return [`The key ${schema.key} should be a safe integer`];
+  }
+
+  const valueInRange = lengthInRange(
+    numberValue,
+    schema.minimum,
+    schema.maximum
+  );
+  if (!valueInRange) {
+    return [
+      `The  number value for the key ${schema.key}
+      is out of range [${schema.minimum}, ${schema.maximum}]
+      : ${numberValue}`,
+    ];
+  }
+  return [];
+};
+
 const validateKeyValue = (
   valueSchema: ValueSchema,
   value: KeyValue
@@ -123,8 +177,12 @@ const validateKeyValue = (
       return validateString(valueSchema.schema, value);
     case 'string-enum':
       return validateStringEnum(valueSchema.schema, value);
+    case 'number':
+      return validateNumber(valueSchema.schema, value);
+    case 'integer':
+      return validateInteger(valueSchema.schema, value);
     default:
-      return ['should not exist'];
+      return [`Kind ${valueSchema.kind} is not supported for single value`];
   }
 };
 const validateKeyMultipleValues = (
