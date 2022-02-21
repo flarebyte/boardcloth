@@ -185,11 +185,62 @@ const validateKeyValue = (
       return [`Kind ${valueSchema.kind} is not supported for single value`];
   }
 };
-const validateKeyMultipleValues = (
-  validator: ValueSchema,
+
+const validateStringList = (
+  schema: Pick<
+    FullValueSchema,
+    'key' | 'minimum' | 'maximum' | 'minItems' | 'maxItems' | 'itemsMultipleOf'
+  >,
   value: KeyMultipleValues
 ): string[] => {
+  const listInRange = lengthInRange(
+    value.v.length,
+    schema.minItems,
+    schema.maxItems
+  );
+  if (!listInRange) {
+    return [
+      `The length of the list for the key ${schema.key}
+      is out of range [${schema.minItems}, ${schema.maxItems}]
+      : ${value.v.length}`,
+    ];
+  }
+
+  const isListMultipleOf =
+    schema.itemsMultipleOf === 1
+      ? true
+      : value.v.length % schema.itemsMultipleOf === 0;
+
+  if (!isListMultipleOf) {
+    return [
+      `The length of the list for the key ${schema.key}
+          is should be a multiple of ${schema.itemsMultipleOf}
+          : ${value.v.length}`,
+    ];
+  }
+  const isStringInRange = (text: string) =>
+    lengthInRange(text.length, schema.minimum, schema.maximum);
+
+  const allStringInRange = value.v.every(isStringInRange);
+
+  if (!allStringInRange) {
+    return [
+      `All the strings for the key ${schema.key}
+      should be in the range [${schema.minimum}, ${schema.maximum}]`,
+    ];
+  }
   return [];
+};
+const validateKeyMultipleValues = (
+  valueSchema: ValueSchema,
+  value: KeyMultipleValues
+): string[] => {
+  switch (valueSchema.kind) {
+    case 'string-list':
+      return validateStringList(valueSchema.schema, value);
+    default:
+      return [`Kind ${valueSchema.kind} is not supported for multiple values`];
+  }
 };
 
 const validateSingleParams = (
