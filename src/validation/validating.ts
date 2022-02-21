@@ -15,12 +15,16 @@ export interface FullValueSchema {
   choices: string[];
   minimum: number;
   maximum: number;
+  searchable: boolean;
 }
 
 export type ValueSchema =
   | {
       kind: 'string';
-      schema: Pick<FullValueSchema, 'key' | 'minimum' | 'maximum'>;
+      schema: Pick<
+        FullValueSchema,
+        'key' | 'minimum' | 'maximum' | 'searchable'
+      >;
     }
   | {
       kind: 'string-enum';
@@ -71,11 +75,57 @@ export interface MessageSchema {
   params: ParamsSchema;
 }
 
-const validateKeyValue = (
-  validator: ValueSchema,
+const lengthInRange = (
+  length: number,
+  minimum: number,
+  maximum: number
+): boolean => length >= minimum && length <= maximum;
+
+const validateString = (
+  schema: Pick<FullValueSchema, 'key' | 'minimum' | 'maximum' | 'searchable'>,
   value: KeyValue
 ): string[] => {
+  const stringInRange = lengthInRange(
+    value.v.length,
+    schema.minimum,
+    schema.maximum
+  );
+  if (!stringInRange) {
+    return [
+      `The length of the string for the key ${schema.key}
+      is out of range [${schema.minimum}, ${schema.maximum}]
+      : ${value.v.length}`,
+    ];
+  }
   return [];
+};
+
+const validateStringEnum = (
+  schema: Pick<FullValueSchema, 'key' | 'choices'>,
+  value: KeyValue
+): string[] => {
+  const isStringIncluded = schema.choices.includes(value.v);
+  if (!isStringIncluded) {
+    return [
+      `The string for the key ${schema.key}
+      is not in the list of choices`,
+    ];
+  }
+  return [];
+};
+
+const validateKeyValue = (
+  valueSchema: ValueSchema,
+  value: KeyValue
+): string[] => {
+  switch (valueSchema.kind) {
+    case 'string':
+      return validateString(valueSchema.schema, value);
+    case 'string-enum':
+      return validateStringEnum(valueSchema.schema, value);
+    default:
+      return ['should not exist'];
+  }
 };
 const validateKeyMultipleValues = (
   validator: ValueSchema,
@@ -90,7 +140,7 @@ const validateSingleParams = (
   params: BoardclothParams
 ): string[] => {
   const actualKeys = new Set(params.single.map((s) => s.k));
-  const validKeys = new Set(validator.single.map((s) => s.key));
+  const validKeys = new Set(validator.single.map((s) => s.schema.key));
   const hasKnownKey = [...actualKeys].every((k) => validKeys.has(k));
   if (!hasKnownKey) {
     return [`The message ${section}/single has unknown keys`];
