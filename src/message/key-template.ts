@@ -97,52 +97,8 @@ export class KeyTemplateStore implements KeyTemplateBaseStore {
   }
 }
 
-export interface TemplateKeyVarBaseGenerator {
-  generate(domain: string): string;
-}
-
-const letters = 'BCDFGHJKLMNPRSTUVXZbcdfghjklmnprstuvxz'.split('');
-const keyVarFormat = '123456789012'.split('');
-const randChar = () =>
-  letters[Math.floor(Math.random() * letters.length)] || 'A';
-const domainIdLength = keyVarFormat.length + 3;
-
-const getDomainAbbreviation = (domain: string): string =>
-  `${domain.charAt(0)}${domain.charAt(domain.length - 1)}`;
-
-/**
- * A very basic and naive TemplateKeyVarGenerator
- */
-export class TemplateKeyVarGenerator implements TemplateKeyVarBaseGenerator {
-  generate(domain: string): string {
-    const domainId = keyVarFormat.map(randChar);
-    const fullId = [...domainId, '-', getDomainAbbreviation(domain)];
-    return fullId.join('');
-  }
-}
-
-export interface TemplateKeyVarBaseValidator {
+interface TemplateKeyVarBaseValidator {
   isValid(domain: string, id: string): boolean;
-}
-
-/**
- * Validate id produced by TemplateKeyVarGenerator
- */
-export class TemplateKeyVarValidator implements TemplateKeyVarBaseValidator {
-  isValid(domain: string, id: string): boolean {
-    if (id.length !== domainIdLength) {
-      return false;
-    }
-    const [domainId, abbreviation] = id.split('-');
-    if (!domainId || !abbreviation) {
-      return false;
-    }
-    const expectedAbbreviation = getDomainAbbreviation(domain);
-    if (abbreviation !== expectedAbbreviation) {
-      return false;
-    }
-    return true;
-  }
 }
 
 const fuzzyMatchTemplate = (
@@ -171,6 +127,9 @@ const fuzzyMatchTemplate = (
   return true;
 };
 
+/**
+ * Manages keys and key templates
+ */
 export class KeyTemplateManager implements KeyTemplateBaseManager {
   store: KeyTemplateBaseStore;
   keyVarValidator: TemplateKeyVarBaseValidator;
@@ -182,19 +141,28 @@ export class KeyTemplateManager implements KeyTemplateBaseManager {
     this.keyVarValidator = keyVarValidator;
   }
 
+  /**
+   * Build a key string from a MessageKey
+   * @returns a key like "contributor:12345/name"
+   */
   buildKey(messageKey: MessageKey): string {
     const segments = messageKey.segments
-      .map((segment) =>
-        segment.kind === 'var'
-          ? `{${escapeSegment(segment.value)}}`
-          : escapeSegment(segment.value)
-      )
+      .map((segment) => escapeSegment(segment.value))
       .join('/');
     return `${messageKey.template.prefix}:${segments}`;
   }
+  /**
+   * Parse a template key
+   * @param key such as `contributor:{contributor}/name`
+   */
   parseTemplate(key: string): false | MessageKeyTemplate {
     return parseKeyTemplate(key);
   }
+
+  /**
+   * Build a key template string from a MessageKeyTemplate
+   * @returns a template key such as `contributor:{contributor}/name`
+   */
   buildTemplate(template: MessageKeyTemplate): string {
     const segments = template.segments
       .map((segment) =>
@@ -205,6 +173,11 @@ export class KeyTemplateManager implements KeyTemplateBaseManager {
       .join('/');
     return `${template.prefix}:${segments}`;
   }
+  /**
+   * Check whether a key matches one of the templates for this category
+   * @param category for instance (ex: contributor)
+   * @param key for instance "contributor:12345/name"
+   */
   matchTemplate(category: string, key: string): MessageKeyTemplate | false {
     const keyAsTemplate = this.parseTemplate(key);
     if (!keyAsTemplate) {
@@ -226,6 +199,11 @@ export class KeyTemplateManager implements KeyTemplateBaseManager {
     }
     return false;
   }
+  /**
+   * Parse a key
+   * @param category for instance (ex: contributor)
+   * @param key for instance "contributor:12345/name"
+   */
   parseKey(category: string, key: string): false | MessageKey {
     {
       if (!isKeySafe(key)) {
