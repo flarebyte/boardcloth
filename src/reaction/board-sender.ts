@@ -1,7 +1,5 @@
 import { BoardclothMessage, MessageCreator } from '../message/messaging';
-import {
-  PermissionBaseManager,
-} from '../permission/granting';
+import { PermissionBaseManager } from '../permission/granting';
 import { MessageSchema, validateMessage } from '../validation/validating';
 
 interface QueueOpts {
@@ -10,16 +8,6 @@ interface QueueOpts {
 
 interface MessageQueue {
   send(message: BoardclothMessage): void;
-}
-
-class MemoryQueue implements MessageQueue {
-  opts: QueueOpts;
-  constructor(opts: QueueOpts) {
-    this.opts = opts;
-  }
-  send(_message: BoardclothMessage): void {
-    throw new Error('Method not implemented.');
-  }
 }
 
 const createMessageForInvalidSize = (size: number): BoardclothMessage => {
@@ -81,11 +69,6 @@ const createAccessMessage = (
 interface QueueFactory {
   create(opts: QueueOpts): MessageQueue;
 }
-class MemoryQueueFactory implements QueueFactory {
-  create(opts: QueueOpts): MessageQueue {
-    return new MemoryQueue(opts);
-  }
-}
 
 interface EssentialHeaders {
   senderMessageId: string;
@@ -100,6 +83,7 @@ export class BoardMessageSender {
   rebelQueue: MessageQueue;
   invalidQueue: MessageQueue;
   accessQueue: MessageQueue;
+  mainQueue: MessageQueue;
   opts: BoardMessageSenderOpts;
 
   constructor(
@@ -111,40 +95,45 @@ export class BoardMessageSender {
     this.rebelQueue = queueFactory.create({ name: 'rebel' });
     this.invalidQueue = queueFactory.create({ name: 'invalid' });
     this.accessQueue = queueFactory.create({ name: 'access' });
+    this.mainQueue = queueFactory.create({ name: 'main' });
     this.opts = opts;
   }
-
+  #sendIfEssential(
+    essentialHeaders: EssentialHeaders,
+    sizeInBytes: number,
+    message: BoardclothMessage
+  ) {
+    const isGranted = this.permissionManager.isGranted(
+      'agentNamePlease',
+      message.headers
+    );
+    this.accessQueue.send(
+      createAccessMessage(essentialHeaders, sizeInBytes, isGranted)
+    );
+    if (!isGranted) {
+      return;
+    }
+    const loadedSchema = loadSchema(essentialHeaders.action);
+    const validatorResult = validateMessage(loadedSchema, message);
+    if (validatorResult !== 'ok') {
+      this.invalidQueue.send(
+        createInvalidMessage(essentialHeaders, sizeInBytes, validatorResult)
+      );
+    }
+    this.mainQueue.send(message);
+  }
   send(message: BoardclothMessage) {
     const sizeInBytes = checkSize(message);
     if (sizeInBytes > this.opts.maxMessageSizeInBytes) {
-      // Very large messages will lead to terrible performances
-      // so we should block them and assume we have a bug
+      // Very large messages would lead to terrible performances
       this.rebelQueue.send(createMessageForInvalidSize(sizeInBytes));
       return;
     }
     const essentialHeaders = extractEssentialHeader(message);
-    if (essentialHeaders === false) {
-      // All messages should have a these essential fields
+    if (essentialHeaders) {
+      this.#sendIfEssential(essentialHeaders, sizeInBytes, message);
+    } else {
       this.rebelQueue.send(createMessageForNoEssentialHeaders(sizeInBytes));
-    }
-    if (isEssentialHeader(essentialHeaders)) {
-      const isGranted = this.permissionManager.isGranted(
-        'agentNamePlease',
-        message.headers
-      );
-      this.accessQueue.send(
-        createAccessMessage(essentialHeaders, sizeInBytes, isGranted)
-      );
-      if (!isGranted) {
-        return;
-      }
-      const loadedSchema = loadSchema(essentialHeaders.action);
-      const validatorResult = validateMessage(loadedSchema, message);
-      if (validatorResult !== 'ok') {
-        this.invalidQueue.send(
-          createInvalidMessage(essentialHeaders, sizeInBytes, validatorResult)
-        );
-      }
     }
   }
 }
