@@ -53,7 +53,7 @@ const toHeadersPermission = (
   }
   return { action: action.v, resource: resource.v };
 };
-export const isGranted = (
+const isGranted = (
   permissions: AgentPermission[],
   headers: BoardclothParams
 ) => {
@@ -64,3 +64,35 @@ export const isGranted = (
   const grantor = isPermissionGranted(headersPermission);
   return permissions.some(grantor);
 };
+
+export interface PermissionStoreBaseStore {
+  getPermissions(agentName: string): AgentPermission[];
+}
+export class PermissionStore implements PermissionStoreBaseStore {
+  store: { [agentName: string]: AgentPermission[] } = {};
+  constructor(permissions: [string, AgentPermission[]][]) {
+    for (const [agentName, agentPermissions] of permissions) {
+      this.store[agentName] = agentPermissions;
+    }
+  }
+  getPermissions(agentName: string): AgentPermission[] {
+    return this.store[agentName] || [];
+  }
+}
+
+export interface PermissionBaseManager {
+  isGranted(agentName: string, headers: BoardclothParams): boolean;
+}
+
+export class PermissionManager implements PermissionBaseManager {
+  store: PermissionStoreBaseStore;
+  constructor(store: PermissionStoreBaseStore) {
+    this.store = store;
+  }
+
+  isGranted(agentName: string, headers: BoardclothParams): boolean {
+    const permissions = this.store.getPermissions(agentName);
+    if (permissions.length === 0) return false;
+    return isGranted(permissions, headers);
+  }
+}

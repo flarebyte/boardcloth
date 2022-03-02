@@ -1,4 +1,7 @@
 import { BoardclothMessage, MessageCreator } from '../message/messaging';
+import {
+  PermissionBaseManager,
+} from '../permission/granting';
 import { MessageSchema, validateMessage } from '../validation/validating';
 
 interface QueueOpts {
@@ -56,6 +59,25 @@ const createInvalidMessage = (
   return creator.message;
 };
 
+const createAccessMessage = (
+  essentialHeaders: EssentialHeaders,
+  size: number,
+  granted: boolean
+): BoardclothMessage => {
+  const creator = new MessageCreator();
+  creator.addHeaderSingle('action', 'core:log:append');
+  creator.addHeaderSingle('resource', 'log/access');
+  creator.addParamSingle('action', `${essentialHeaders.action}`);
+  creator.addParamSingle('resource', `${essentialHeaders.resource}`);
+  creator.addParamSingle('granted', `${granted ? 'yes' : 'no'}`);
+  creator.addParamSingle('message-size', `${size}`);
+  creator.addParamSingle(
+    'sender-message-id',
+    `${essentialHeaders.senderMessageId}`
+  );
+  return creator.message;
+};
+
 interface QueueFactory {
   create(opts: QueueOpts): MessageQueue;
 }
@@ -74,15 +96,21 @@ interface BoardMessageSenderOpts {
   maxMessageSizeInBytes: number;
 }
 export class BoardMessageSender {
+  permissionManager: PermissionBaseManager;
   rebelQueue: MessageQueue;
   invalidQueue: MessageQueue;
-  forbiddenQueue: MessageQueue;
+  accessQueue: MessageQueue;
   opts: BoardMessageSenderOpts;
 
-  constructor(queueFactory: QueueFactory, opts: BoardMessageSenderOpts) {
+  constructor(
+    queueFactory: QueueFactory,
+    permissionManager: PermissionBaseManager,
+    opts: BoardMessageSenderOpts
+  ) {
+    this.permissionManager = permissionManager;
     this.rebelQueue = queueFactory.create({ name: 'rebel' });
     this.invalidQueue = queueFactory.create({ name: 'invalid' });
-    this.forbiddenQueue = queueFactory.create({ name: 'forbidden' });
+    this.accessQueue = queueFactory.create({ name: 'access' });
     this.opts = opts;
   }
 
@@ -100,6 +128,16 @@ export class BoardMessageSender {
       this.rebelQueue.send(createMessageForNoEssentialHeaders(sizeInBytes));
     }
     if (isEssentialHeader(essentialHeaders)) {
+      const isGranted = this.permissionManager.isGranted(
+        'agentNamePlease',
+        message.headers
+      );
+      this.accessQueue.send(
+        createAccessMessage(essentialHeaders, sizeInBytes, isGranted)
+      );
+      if (!isGranted) {
+        return;
+      }
       const loadedSchema = loadSchema(essentialHeaders.action);
       const validatorResult = validateMessage(loadedSchema, message);
       if (validatorResult !== 'ok') {
