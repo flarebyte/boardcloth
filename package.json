@@ -1,7 +1,9 @@
 {
   "name": "boardcloth",
   "description": "A digital cloth that covers and protects a table board",
-  "keywords": ["table"],
+  "keywords": [
+    "table"
+  ],
   "version": "0.1.0",
   "author": {
     "name": "Olivier Huin",
@@ -56,7 +58,9 @@
     "norm": "npx baldrick-ts generate -f lib -ga 'flarebyte' -ch 'Flarebyte.com' -cy 2022 -l MIT && yarn md:fix",
     "norm:g": "baldrick-ts generate -f lib -ga 'flarebyte' -ch 'Flarebyte.com' -cy 2022 -l MIT && yarn md:fix"
   },
-  "dependencies": {},
+  "dependencies": {
+    "rxjs": "^7.5.5"
+  },
   "devDependencies": {
     "baldrick-dev-ts": "^0.15.0",
     "typescript": "^4.5.5"
