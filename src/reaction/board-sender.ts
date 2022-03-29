@@ -1,6 +1,12 @@
-import { BoardclothMessage, MessageCreator } from '../message/messaging';
+import { BoardclothMessage } from '../message/messaging';
 import { PermissionBaseManager } from '../permission/granting';
 import { MessageSchema, validateMessage } from '../validation/validating';
+import {
+  createMessageForInvalidSize,
+  createAccessMessage,
+  createInvalidMessage,
+  createMessageForNoEssentialHeaders,
+} from './common-message';
 
 interface QueueOpts {
   name: string;
@@ -10,67 +16,11 @@ interface MessageQueue {
   send(message: BoardclothMessage): void;
 }
 
-const createMessageForInvalidSize = (size: number): BoardclothMessage => {
-  const creator = new MessageCreator();
-  creator.addHeaderSingle('action', 'core:log:append');
-  creator.addHeaderSingle('resource', 'log/invalid/size');
-  creator.addParamSingle('message-size', `${size}`);
-  return creator.message;
-};
-
-const createMessageForNoEssentialHeaders = (
-  size: number
-): BoardclothMessage => {
-  const creator = new MessageCreator();
-  creator.addHeaderSingle('action', 'core:log:append');
-  creator.addHeaderSingle('resource', 'log/invalid/no-essential-headers');
-  creator.addParamSingle('message-size', `${size}`);
-  return creator.message;
-};
-
-const createInvalidMessage = (
-  essentialHeaders: EssentialHeaders,
-  size: number,
-  errorMessages: string[]
-): BoardclothMessage => {
-  const creator = new MessageCreator();
-  creator.addHeaderSingle('action', 'core:log:append');
-  creator.addHeaderSingle('resource', 'log/invalid/invalid-message');
-  creator.addParamSingle('message-size', `${size}`);
-  creator.addParamSingle(
-    'sender-message-id',
-    `${essentialHeaders.senderMessageId}`
-  );
-  creator.addParamSingle('action', `${essentialHeaders.action}`);
-  creator.addParamSingle('resource', `${essentialHeaders.resource}`);
-  creator.addParamMultiple('messages', errorMessages);
-  return creator.message;
-};
-
-const createAccessMessage = (
-  essentialHeaders: EssentialHeaders,
-  size: number,
-  granted: boolean
-): BoardclothMessage => {
-  const creator = new MessageCreator();
-  creator.addHeaderSingle('action', 'core:log:append');
-  creator.addHeaderSingle('resource', 'log/access');
-  creator.addParamSingle('action', `${essentialHeaders.action}`);
-  creator.addParamSingle('resource', `${essentialHeaders.resource}`);
-  creator.addParamSingle('granted', `${granted ? 'yes' : 'no'}`);
-  creator.addParamSingle('message-size', `${size}`);
-  creator.addParamSingle(
-    'sender-message-id',
-    `${essentialHeaders.senderMessageId}`
-  );
-  return creator.message;
-};
-
 interface QueueFactory {
   create(opts: QueueOpts): MessageQueue;
 }
 
-interface EssentialHeaders {
+export interface EssentialHeaders {
   senderMessageId: string;
   action: string;
   resource: string;
