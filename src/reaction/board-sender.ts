@@ -28,6 +28,7 @@ export interface EssentialHeaders {
 interface BoardMessageSenderOpts {
   maxMessageSizeInBytes: number;
 }
+
 export class BoardMessageSender {
   permissionManager: PermissionBaseManager;
   rebelQueue: MessageQueue;
