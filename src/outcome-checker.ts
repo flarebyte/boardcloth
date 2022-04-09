@@ -5,9 +5,9 @@ import {
   EssentialHeaders,
   MessageOutcome,
   toEssentialHeaders,
-} from '../message/outcome';
-import { PermissionBaseManager } from '../permission/granting';
-import { ValidationBaseManager } from '../validation/validating';
+} from './outcome';
+import { PermissionBaseManager } from './granting';
+import { ValidationBaseManager } from './validating';
 
 const hasEssentialHeaders = (value: unknown): value is EssentialHeaders =>
   value !== false && typeof (value as EssentialHeaders).action === 'string';

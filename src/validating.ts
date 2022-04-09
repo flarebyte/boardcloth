@@ -3,8 +3,8 @@ import {
   BoardclothParams,
   KeyMultipleValues,
   KeyValue,
-} from '../message/messaging';
-import { EssentialHeaders } from '../message/outcome';
+} from './messaging';
+import { EssentialHeaders } from './outcome';
 
 type ValidatorResult = 'ok' | string[];
 

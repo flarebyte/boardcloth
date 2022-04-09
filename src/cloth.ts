@@ -1,4 +1,4 @@
-import { AccessToken, AgentPermission } from './permission/granting';
+import { AccessToken, AgentPermission } from './granting';
 
 interface Author {
   name: string;

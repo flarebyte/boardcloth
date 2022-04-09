@@ -1,7 +1,7 @@
 import {
   KeyTemplateManager,
   KeyTemplateStore,
-} from '../../src/message/key-template';
+} from '../src/key-template';
 
 class PredictableTemplateKeyVarGenerator {
   counter: number = 0;

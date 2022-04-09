@@ -1,7 +1,7 @@
 import {
   NaiveTemplateKeyVarGenerator,
   NaiveTemplateKeyVarValidator,
-} from '../../src/message/naive-key-generator';
+} from '../src/naive-key-generator';
 
 describe('naive-key-generator', () => {
   const generator = new NaiveTemplateKeyVarGenerator();

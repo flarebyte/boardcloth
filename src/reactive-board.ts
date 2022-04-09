@@ -1,8 +1,8 @@
 import { map, of } from 'rxjs';
-import { BoardclothMessage } from '../message/messaging';
-import { fromMessage } from '../message/outcome';
-import { PermissionBaseManager } from '../permission/granting';
-import { ValidationBaseManager } from '../validation/validating';
+import { BoardclothMessage } from './messaging';
+import { fromMessage } from './outcome';
+import { PermissionBaseManager } from './granting';
+import { ValidationBaseManager } from './validating';
 import {
   checkAuthorized,
   checkSupported,
