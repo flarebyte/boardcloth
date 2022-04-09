@@ -1,12 +1,8 @@
-import { Subject } from "rxjs";
-import { BoardclothMessage } from "../message/messaging";
+import { of } from 'rxjs';
+import { BoardclothMessage } from '../message/messaging';
+import { fromMessage } from '../message/outcome';
 
-/**
- * A Subject is a special type of Observable that allows messages to be multicasted to many Observers
- */
-export class SubjectManager {
-    private _subject = new Subject<BoardclothMessage>()
-    send(message: BoardclothMessage){
-        this._subject.next(message);
-    }
-}
+export const ofMessage = (message: BoardclothMessage) => {
+  const outcome = fromMessage(message);
+  return of(outcome);
+};

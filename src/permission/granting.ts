@@ -1,4 +1,5 @@
 import { BoardclothParams } from '../message/messaging';
+import { EssentialHeaders } from '../reaction/board-sender';
 
 export interface SupportedAction {
   name: string;
@@ -82,6 +83,7 @@ export class PermissionStore implements PermissionStoreBaseStore {
 
 export interface PermissionBaseManager {
   isGranted(agentName: string, headers: BoardclothParams): boolean;
+  isGranted2(essentialHeaders: EssentialHeaders): boolean;
 }
 
 export class PermissionManager implements PermissionBaseManager {
@@ -94,5 +96,8 @@ export class PermissionManager implements PermissionBaseManager {
     const permissions = this.store.getPermissions(agentName);
     if (permissions.length === 0) return false;
     return isGranted(permissions, headers);
+  }
+  isGranted2(_essentialHeaders: EssentialHeaders): boolean {
+    return false;
   }
 }
