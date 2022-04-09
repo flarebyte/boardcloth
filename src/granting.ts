@@ -1,5 +1,5 @@
 import { BoardclothParams } from './messaging';
-import { EssentialHeaders } from '../reaction/board-sender';
+import { EssentialHeaders } from './outcome';
 
 export interface SupportedAction {
   name: string;

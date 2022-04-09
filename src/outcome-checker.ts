@@ -1,11 +1,13 @@
 import {
-  createAccessDeniedOutcomeError,
-  createUnsupportedOutcomeError,
-  createValidationOutcomeError,
   EssentialHeaders,
   MessageOutcome,
   toEssentialHeaders,
 } from './outcome';
+import {
+  createAccessDeniedOutcomeError,
+  createUnsupportedOutcomeError,
+  createValidationOutcomeError
+} from "./outcome-error";
 import { PermissionBaseManager } from './granting';
 import { ValidationBaseManager } from './validating';
 
