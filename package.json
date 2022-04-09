@@ -59,6 +59,7 @@
     "norm:g": "baldrick-ts generate -f lib -ga 'flarebyte' -ch 'Flarebyte.com' -cy 2022 -l MIT && yarn md:fix"
   },
   "dependencies": {
+    "mnemonist": "^0.39.0",
     "rxjs": "^7.5.5"
   },
   "devDependencies": {
