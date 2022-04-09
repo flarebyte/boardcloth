@@ -1,17 +1,22 @@
-import { map } from 'rxjs';
+import { map, of } from 'rxjs';
 import { BoardclothMessage } from '../message/messaging';
+import { fromMessage } from '../message/outcome';
 import { PermissionBaseManager } from '../permission/granting';
 import { checkAuthorized, checkSupported } from './outcome-checker';
-import { ofMessage } from './reactive-toolkit';
 
-interface Managers {
+interface MessageFactoryOpts {
   permission: PermissionBaseManager;
 }
 
+const ofMessageAsOutcome = (message: BoardclothMessage) => {
+    const outcome = fromMessage(message);
+    return of(outcome);
+  };
+  
 export const ofCheckedMessage =
-  (managers: Managers) => (message: BoardclothMessage) => {
-    return ofMessage(message).pipe(
+  (opts: MessageFactoryOpts) => (message: BoardclothMessage) => {
+    return ofMessageAsOutcome(message).pipe(
       map(checkSupported),
-      map(checkAuthorized(managers.permission))
+      map(checkAuthorized(opts.permission))
     );
   };

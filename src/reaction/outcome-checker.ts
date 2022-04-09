@@ -1,5 +1,5 @@
 import {
-  createOutcomeError,
+  createAccessDeniedOutcomeError,
   createUnsupportedOutcomeError,
   hasEssentialHeaders,
   MessageOutcome,
@@ -8,16 +8,13 @@ import {
 import { PermissionBaseManager } from '../permission/granting';
 
 export const checkSupported = (outcome: MessageOutcome): MessageOutcome => {
-  const isSupported = hasEssentialHeaders(toEssentialHeaders(outcome.message));
+  const essentialHeaders = toEssentialHeaders(outcome.message);
+  const isSupported = hasEssentialHeaders(essentialHeaders);
   return isSupported
-    ? outcome
+    ? { ...outcome, essentialHeaders }
     : {
         ...outcome,
-        errors: [
-          createUnsupportedOutcomeError(
-            'Message without the essential headers'
-          ),
-        ],
+        errors: [createUnsupportedOutcomeError()],
       };
 };
 
@@ -36,13 +33,7 @@ export const checkAuthorized =
     } else {
       return {
         ...outcome,
-        errors: [
-          createOutcomeError(
-            'access-denied',
-            'Message is not authorized for this agent',
-            essentialHeaders
-          ),
-        ],
+        errors: [createAccessDeniedOutcomeError(essentialHeaders)],
       };
     }
   };

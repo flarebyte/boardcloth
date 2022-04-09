@@ -18,25 +18,31 @@ export interface OutcomeError extends Partial<EssentialHeaders> {
   messages: string[];
 }
 
-export const createUnsupportedOutcomeError = (
-  message: string,
-): OutcomeError => ({
+export const createUnsupportedOutcomeError = (): OutcomeError => ({
   kind: 'not-supported',
-  messages: [message]
+  messages: ['Message without the essential headers'],
+});
+export const createAccessDeniedOutcomeError = (
+  essentialHeaders: EssentialHeaders
+): OutcomeError => ({
+  kind: 'access-denied',
+  messages: ['Message is not authorized for this agent'],
+  ...essentialHeaders,
 });
 
 export const createOutcomeError = (
-    kind: OutcomeErrorKind,
-    message: string,
-    essentialHeaders:EssentialHeaders
-  ): OutcomeError => ({
-    kind,
-    messages: [message],
-    ...essentialHeaders
-  });
+  kind: OutcomeErrorKind,
+  message: string,
+  essentialHeaders: EssentialHeaders
+): OutcomeError => ({
+  kind,
+  messages: [message],
+  ...essentialHeaders,
+});
 
 export interface MessageOutcome {
   message: BoardclothMessage;
+  essentialHeaders?: EssentialHeaders;
   errors: OutcomeError[];
 }
 
