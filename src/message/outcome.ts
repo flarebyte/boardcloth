@@ -56,8 +56,3 @@ export function toEssentialHeaders(
 ): EssentialHeaders | false {
   return false;
 }
-
-export const hasEssentialHeaders = (
-  value: unknown
-): value is EssentialHeaders =>
-  value !== false && typeof (value as EssentialHeaders).action === 'string';

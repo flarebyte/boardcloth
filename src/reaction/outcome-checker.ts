@@ -1,11 +1,14 @@
 import {
   createAccessDeniedOutcomeError,
   createUnsupportedOutcomeError,
-  hasEssentialHeaders,
+  EssentialHeaders,
   MessageOutcome,
   toEssentialHeaders,
 } from '../message/outcome';
 import { PermissionBaseManager } from '../permission/granting';
+
+const hasEssentialHeaders = (value: unknown): value is EssentialHeaders =>
+  value !== false && typeof (value as EssentialHeaders).action === 'string';
 
 export const checkSupported = (outcome: MessageOutcome): MessageOutcome => {
   const essentialHeaders = toEssentialHeaders(outcome.message);
@@ -21,19 +24,20 @@ export const checkSupported = (outcome: MessageOutcome): MessageOutcome => {
 export const checkAuthorized =
   (manager: PermissionBaseManager) =>
   (outcome: MessageOutcome): MessageOutcome => {
-    if (outcome.errors.length > 0) {
+    if (
+      outcome.errors.length > 0 ||
+      !hasEssentialHeaders(outcome.essentialHeaders)
+    ) {
       return outcome;
     }
-    const essentialHeaders = toEssentialHeaders(outcome.message);
-    const isSupported = hasEssentialHeaders(essentialHeaders);
 
-    const isGranted = isSupported && manager.isGranted2(essentialHeaders);
-    if (isGranted || !isSupported) {
+    const isGranted = manager.isGranted2(outcome.essentialHeaders);
+    if (isGranted) {
       return outcome;
     } else {
       return {
         ...outcome,
-        errors: [createAccessDeniedOutcomeError(essentialHeaders)],
+        errors: [createAccessDeniedOutcomeError(outcome.essentialHeaders)],
       };
     }
   };
