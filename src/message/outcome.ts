@@ -30,6 +30,15 @@ export const createAccessDeniedOutcomeError = (
   ...essentialHeaders,
 });
 
+export const createValidationOutcomeError = (
+  essentialHeaders: EssentialHeaders,
+  messages: string[]
+): OutcomeError => ({
+  kind: 'invalid-message',
+  messages,
+  ...essentialHeaders,
+});
+
 export const createOutcomeError = (
   kind: OutcomeErrorKind,
   message: string,

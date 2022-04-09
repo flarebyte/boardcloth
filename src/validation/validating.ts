@@ -4,6 +4,7 @@ import {
   KeyMultipleValues,
   KeyValue,
 } from '../message/messaging';
+import { EssentialHeaders } from '../message/outcome';
 
 type ValidatorResult = 'ok' | string[];
 
@@ -363,3 +364,7 @@ export const validateMessage = (
   const warnings = [...headersWarnings, ...paramsWarnings];
   return warnings.length === 0 ? 'ok' : warnings;
 };
+
+export interface ValidationBaseManager {
+    validate(essentialHeaders: EssentialHeaders, message: BoardclothMessage): ValidatorResult;
+}
