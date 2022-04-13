@@ -403,3 +403,165 @@ same record may be shared by multiple documents.
 -   Bad, because:
     -   more relevant for collaborative work where we have a backend server.
     -   increase the complexity
+
+# Identify a child record
+
+-   Status: proposed
+-   Deciders: Olivier
+
+## Context and Problem Statement
+
+A document is composed of many child records, and we need a way to identify
+them.
+
+## Decision Drivers
+
+-   Flexibility
+
+## Considered Options
+
+-   By unique generated Id
+-   By creating a composed Id
+
+## Decision Outcome
+
+Chosen option: "creating a composed Id", because the id is more predictable
+and this is useful for collaboration.
+
+### Positive Consequences
+
+-   An intuitive id based on the business domain.
+-   No additional id that pollutes the record in an unpredictable way.
+
+### Negative Consequences
+
+-   The id is based on the business domain and may have to change when the
+    business model changes.
+-   Edge cases are difficult to predict ahead of time.
+-   In few cases, we may still need a unique id (ex: representing a column,
+    a city ...)
+
+## Pros and Cons of the Options
+
+### By unique generated Id
+
+Generate a unique identifier for the child record. This can be for instance
+an UUID.
+
+-   Good, because:
+    -   a very common solution.
+-   Bad, because:
+    -   this introduce a side effect where a random number is generated.
+    -   the same cell (row 3, column 5) will have a different id every time.
+    -   two people modifying the same cell at the similar time will get
+        different id.
+
+***
+
+### By creating a composed Id
+
+Create a logic id that is the composition of several keys (ex: week and year)
+
+-   Good, because:
+    -   The same cell can be represented with same id regardless of where the
+        cell record has been created.
+    -   No need to store an additional id. What to do with the additional id is
+        more problematic during import and export.
+    -   Optionally, a composed id could contain a unique id. This level of
+        indirection introduces some complexity though.
+-   Bad, because:
+    -   Additional complexity of dealing with composed index.
+    -   Various possible composition.
+    -   The composition fields may evolve over time and this may create some
+        migration challenges.
+
+***
+
+# List of results
+
+-   Status: proposed
+-   Deciders: Olivier
+
+## Context and Problem Statement
+
+When searching a domain, usually many results will be returned. How should we
+represent these results.
+
+## Decision Drivers
+
+-   Cost benefits.
+
+## Considered Options
+
+-   As an array of results
+-   As a flatten array of results
+-   As a batch of messages
+
+## Decision Outcome
+
+Chosen option: "As a batch of messages", because it looks like it will keep
+the model and the algorithms simpler.
+
+### Positive Consequences
+
+-   Simpler model
+-   Simpler algorithms for validation.
+-   A reactive programming touch.
+
+### Negative Consequences
+
+-   Unusual approach.
+
+## Pros and Cons of the Options
+
+### As an array of results
+
+A message with a body containing an array of results. For instance an array
+of rows.
+
+-   Good, because:
+    -   The classic way of dealing with list of results
+-   Bad, because:
+    -   The model for a message will include one more level to express a list.
+        This means in some cases, there will be a single result and sometimes
+        many results. It also raises the question of what should happen if no
+        result at all.
+    -   The serialization will be more complex and there may be cases for which
+        it may be harder to tell if the value is correct or missing.
+    -   The validation framework will have to be more advanced.
+
+***
+
+### As a flatten array of results
+
+A message with a body with paths representing an array in a flatten manner.
+In this approach an array will be represented as a path. Ex: `city[0].name`
+
+-   Good, because:
+    -   Some algorithms may be easier to implement because no recursion may be
+        needed.
+-   Bad, because:
+    -   Not everyone is familiar with [json
+        path](https://support.smartbear.com/alertsite/docs/monitors/api/endpoint/jsonpath.html).
+    -   the complexity of the structure still exists.
+
+***
+
+### As a batch of messages
+
+A batch of several messages each containing a single result. A message will
+only contain one result, but several messages can represent a list of
+results.
+
+-   Good, because:
+    -   The message structure remain fairly simple with no or limited support
+        for array.
+    -   Algorithms for validation can leverage the simplicity of the model.
+    -   It may be closer to a reactive approach where a result is sent as soon
+        as available.
+-   Bad, because:
+    -   Fairly unusual approach that may introduce some unforseen edge cases.
+        On the other hand, it may be in the spirit of reactive programming.
+    -   Keeping the results in a specific order may require additional effort.
+
+***
