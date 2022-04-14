@@ -565,3 +565,77 @@ results.
     -   Keeping the results in a specific order may require additional effort.
 
 ***
+
+# Code organization for plugins
+
+-   Status: proposed
+-   Deciders: Olivier
+
+## Context and Problem Statement
+
+Many aspects of this project could be represented as plugins. The idea behind
+this, is that multiple solutions to a similar problem may be considered
+depending on the requirements of the final application. For instance, we may
+want a persistence layer and depending on the application we may to persist
+to memory, to disk, or to the cloud. Then we may want to decide how to
+organize the code.
+
+## Decision Drivers
+
+-   Power vs complexity of the approach.
+-   Evolution of the requirements.
+-   Evolution of our understanding of the best strategies.
+
+## Considered Options
+
+-   Decouple plugins as separate library
+-   Keep all the plugins in this project
+
+## Decision Outcome
+
+Chosen option: "Keep all the plugins in this project ", because the project
+is very experimental and we are not too sure yet of the best approaches.
+
+### Positive Consequences
+
+-   Easy to refactor plugins.
+-   Opportunity to build experience around `RxJx` by using it for the
+    plugins.
+
+### Negative Consequences
+
+-   This library may become quite opinionated to accomodate the immediate
+    application specs.
+-   Unused plugins may still weight on the size of the final bundle.
+
+## Pros and Cons of the Options
+
+### Decouple plugins as separate library
+
+Create a standalone github project for each plugin.
+
+-   Good, because:
+    -   Each application will only require the plugins they need.
+    -   Possibility to write a brand new plugin project when the requirements
+        evolve.
+-   Bad, because:
+    -   The original concept is very experimental, and our knowledge of rxjs is
+        limited, so defining the contracts for the plugin is difficult.
+
+***
+
+### Keep all the plugins in this project
+
+The core library and the plugins are all in one location. In other words,
+this project will contain the code library but also the plugins code.
+
+-   Good, because:
+    -   Do not have to worry about contracts so much because all the code is in
+        one place and fairly easy to refactor.
+    -   We can use `Rxjs` in the plugins implementation.
+-   Bad, because:
+    -   Some plugins may be too opinionated to be part of the core.
+    -   Some applications may have to download dependencies they will not use.
+        To some extent, tree shaking may be able to help in these situations.
+
+***
