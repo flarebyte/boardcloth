@@ -3,6 +3,12 @@
 > Guide for the implementation, including detailed design, priorities,
 > coding conventions, and testing
 
+-   We aim to be reactive by using "Reactive Extensions For JavaScript".
+    This library is meant to be the flip side of the "Elm" coin.
+-   A document should fit in memory. This way a version of the application
+    that works offline is possible.
+-   Status for a record is stored separately.
+
 ## Code structure
 
 -   **src**: Typescript source code
