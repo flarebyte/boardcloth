@@ -21,10 +21,15 @@ interface PortableTable {
   primaryKeys: string[];
   columns: { [key: string]: PortableColumn };
 }
+type IntegrityStrategy = 'SHA-1' | 'Keccak'
 
+/**
+ * @link https://cryptojs.gitbook.io/docs/
+ */
 interface PortableBoardDocument {
   id: string;
   integrity: {
+
     hashCode?: string;
     size: number;
   };

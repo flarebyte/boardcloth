@@ -60,7 +60,8 @@
   },
   "dependencies": {
     "mnemonist": "^0.39.0",
-    "rxjs": "^7.5.5"
+    "rxjs": "^7.5.5",
+    "zod": "^3.14.4"
   },
   "devDependencies": {
     "baldrick-dev-ts": "^0.15.0",
