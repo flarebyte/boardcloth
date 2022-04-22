@@ -261,11 +261,13 @@ some ways, we want to represent a transient state for a record.
 
 ## Decision Outcome
 
-Chosen option: "status stored separately", because
+Chosen option: "status stored separately", because this way the model for
+status can contain transient information and easily evolve without polluting
+the persistent model.
 
 ### Positive Consequences
 
--   centralize the way to manage status
+-   centralize the way of managing status
 -   the model for status can easily evolve
 -   the status information does not have to be stored in the record, which
     is great (hopefully) for transient information.

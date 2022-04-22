@@ -7,7 +7,19 @@
     This library is meant to be the flip side of the "Elm" coin.
 -   A document should fit in memory. This way a version of the application
     that works offline is possible.
--   Status for a record is stored separately.
+-   Status for a record is stored separately because this way the model for
+    status can contain transient information and easily evolve without
+    polluting the persistent model.
+-   Formal dependencies between a document and its children so we could
+    update the parent when the child is updated.
+-   A child record is identified by a composed id (ex: x,y) because the id
+    is more predictable
+    and this is useful for collaboration.
+-   A list of results is represented as a "batch of messages", because it
+    looks like it will keep
+    the model and the algorithms simpler.
+-   Keep all the plugins in this project because the project is very
+    experimental and we are not too sure yet of the best approaches.
 
 ## Code structure
 
